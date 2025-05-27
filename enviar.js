@@ -1,22 +1,22 @@
-
 const fs = require('fs');
 const mjml = require('mjml');
 const nodemailer = require('nodemailer');
 const csv = require('csv-parser');
 const path = require('path');
+const { mailUser, mailPass } = require('./config');
 
-// Configuración del transporte nodemailer (ejemplo con Gmail)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'francordobes@gmail.com',
-    pass: 'Choco_713$'
+    user: mailUser,
+    pass: mailPass
   }
 });
 
 const mjmlTemplate = fs.readFileSync(path.join(__dirname, 'templates', 'Plantilla_Automovil.mjml'), 'utf8');
 
-// Función para reemplazar variables {{nombre}}, {{empresa}}, etc.
+fs.mkdirSync(path.join(__dirname, 'output'), { recursive: true });
+
 function personalizarPlantilla(template, datos) {
   return template
     .replace(/{{nombre}}/g, datos.nombre)
@@ -31,13 +31,11 @@ fs.createReadStream(path.join(__dirname, 'data', 'suscriptores.csv'))
     const personalizado = personalizarPlantilla(mjmlTemplate, row);
     const htmlOutput = mjml(personalizado, { validationLevel: 'strict' }).html;
 
-    // Guardar archivo HTML generado
     const fileName = `correo_${row.nombre}.html`;
     fs.writeFileSync(path.join(__dirname, 'output', fileName), htmlOutput);
 
-    // Enviar el correo
     const mailOptions = {
-      from: 'TU_CORREO@gmail.com',
+      from: mailUser,
       to: row.email,
       subject: `Hola ${row.nombre}, ¡te esperamos en Feria Valencia!`,
       html: htmlOutput
